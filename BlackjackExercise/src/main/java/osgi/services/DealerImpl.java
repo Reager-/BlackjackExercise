@@ -1,4 +1,4 @@
-package osgi.service;
+package osgi.services;
 
 public class DealerImpl implements Dealer{
 
