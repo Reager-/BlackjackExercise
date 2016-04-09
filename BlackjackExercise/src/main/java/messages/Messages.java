@@ -9,4 +9,6 @@ public final class Messages {
     public static final String PLACE_BET = "PlaceBet";
     public static final String PLAY_TURN = "PlayTurn";
     public static final String REGISTER_PLAYER = "RegisterPlayer";
+    public static final String START_GAME = "StartGame";
+    public static final String STOP_GAME = "StopGame";
 }
