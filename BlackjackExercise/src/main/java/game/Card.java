@@ -1,8 +1,12 @@
 package game;
 
-public class Card {
+import java.io.Serializable;
 
-    private CardType type;
+public class Card implements Serializable{
+
+	private static final long serialVersionUID = -7288871415262655062L;
+
+	private CardType type;
     private CardSuit suit;
     private int value;
 

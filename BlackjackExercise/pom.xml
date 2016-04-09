@@ -7,30 +7,30 @@
 
 	<dependencies>
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.1</version>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.1</version>
+		</dependency>
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.1</version>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.1</version>
+		</dependency>
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>2.1</version>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.1</version>
+		</dependency>
 
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j_2.10</artifactId>
-            <version>2.2.3</version>
-        </dependency>
-        
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-slf4j_2.10</artifactId>
+			<version>2.2.3</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.typesafe.akka</groupId>
 			<artifactId>akka-actor_2.10</artifactId>
@@ -59,27 +59,29 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<archive>
-						<index>true</index>
-						<manifest>
-							<addClasspath>true</addClasspath>
-						</manifest>
-						<manifestEntries>
-							<mode>development</mode>
-							<Bundle-Name>BlackjackExercise</Bundle-Name>
-							<Bundle-Description>A Java implementation of a simplified
-								Blackjack multiplayer game, built with Akka, Hazelcast and
-								Felix.
-							</Bundle-Description>
-							<Bundle-Activator>osgi.Activator</Bundle-Activator>
-							<Import-Package>org.osgi.framework</Import-Package>
-						</manifestEntries>
-					</archive>
-				</configuration>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<id>dealer</id>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>utils.DealerMain</mainClass>
+						</configuration>
+					</execution>
+					<execution>
+						<id>player</id>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>utils.PlayerMain</mainClass>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

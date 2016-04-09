@@ -213,6 +213,9 @@ public class DealerActor extends UntypedActor {
 	private void register() {
 		this.getContext().watch(getSender());
 		this.players.add(getSender());
+		if (this.players.size() >= 1 && !gameHasStarted){
+			getSelf().tell(Messages.START_GAME, getSelf());
+		}
 	}
 
 	private void stopBlackJack() {
@@ -221,7 +224,7 @@ public class DealerActor extends UntypedActor {
 	}
 
 	private void startRound() {
-		if (this.players.size() > 1) {
+		if (this.players.size() >= 1) {
 			log.info("--- ROUND START ---");
 			this.betCounter = 0;
 			this.cardsDeck = new Deck();

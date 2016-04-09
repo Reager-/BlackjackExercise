@@ -33,7 +33,7 @@ public final class DataGrid {
     
     private DataGrid() {
         Config config = new Config();
-        config.setProperty("hazelcast.logging.type", "slf4j");
+        //config.setProperty("hazelcast.logging.type", "slf4j"); //uncomment this to enable hazelcast logging
         this.hazelcastInstance = Hazelcast.newHazelcastInstance(config);
     }
     
