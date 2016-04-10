@@ -2,6 +2,9 @@
 A Java implementation of a simplified Blackjack multiplayer game, built with Akka, Hazelcast and Felix.
 
 Running Dealer and Player main classes manually without Felix: <br />
+- BlackjackExercise-engine's pom must be modified before building: <br />
+  1) Delete <packaging>bundle</packaging>
+  2) Comment the apache felix build plugin and uncomment the exec maven plugin
 - From pom's folder: <br />
   1) mvn clean install <br />
   2) mvn exec:java@dealer <br />
