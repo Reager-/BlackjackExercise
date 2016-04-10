@@ -15,12 +15,12 @@ public class Activator implements BundleActivator, ServiceListener {
 	public void start(BundleContext context) {
 		Hashtable<String, String> properties = new Hashtable<>();
 		properties.put("GP", "BlackjackExercise-client");
-		ServiceTracker serviceTracker = new ServiceTracker(context, DealerServices.class.getName(), null);
+		ServiceTracker serviceTracker = new ServiceTracker(context, DealerServices.class, null);
 		serviceTracker.open();
 		DealerServices dealerServices = (DealerServices) serviceTracker.getService();
 		String actorSytemName = "BlackJackExercise";
 		String dealerId = "dealerActor";
-		dealerServices.instantiate(actorSytemName, dealerId);
+		System.out.println(dealerServices.instantiate(actorSytemName, dealerId));
 		System.out.println("Starting to listen for service events.");
 	}
 

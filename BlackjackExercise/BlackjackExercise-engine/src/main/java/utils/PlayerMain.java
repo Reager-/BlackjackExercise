@@ -12,7 +12,7 @@ import java.util.Random;
 
 public class PlayerMain {
     private static final Logger log = LogManager.getLogger();
-
+    
     public static void main(String[] args) {
         log.info("PlayerMain was started.");
 

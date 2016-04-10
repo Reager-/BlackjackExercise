@@ -92,7 +92,7 @@ public class DealerActor extends UntypedActor {
 		cardsOnTable.remove(getSender());
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		takeMoney(betsOnTable, getSender());
-		Queue<ActorRef> turns = DataGrid.getInstance().getTurnsQueue();
+		Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
 		turns.remove().tell(Messages.PLAY_TURN, getSelf());
 	}
 
@@ -188,7 +188,7 @@ public class DealerActor extends UntypedActor {
 			dealCardsToPlayers(cardsOnTable);
 			cardsOnTable.put(getSelf(), new ArrayList<Card>(Collections.singletonList(this.cardsDeck.nextCard())));
 			dealCardsToPlayers(cardsOnTable);
-			Queue<ActorRef> turns = DataGrid.getInstance().getTurnsQueue();
+			Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
 			for (Map.Entry<ActorRef, List<Card>> a : sortMapByValue(cardsOnTable).entrySet()){	
 				if(!a.equals(getSelf())){
 					turns.add(a.getKey());
@@ -231,7 +231,7 @@ public class DealerActor extends UntypedActor {
 			this.holeCard = this.cardsDeck.nextCard();
 			DataGrid.getInstance().getCardsOnTable().clear();
 			DataGrid.getInstance().getBetsOnTable().clear();
-			DataGrid.getInstance().getTurnsQueue().clear();
+			DataGrid.getInstance().getTurns().clear();
 			for (ActorRef a : this.players){
 				a.tell(Messages.PLACE_BET, getSelf());
 			}
@@ -251,7 +251,7 @@ public class DealerActor extends UntypedActor {
 	}
 
 	private <K, V extends Comparable<? super V>> Map<ActorRef, List<Card>> sortMapByValue( Map<ActorRef, List<Card>> map ){
-		List<Map.Entry<ActorRef, List<Card>>> list = new LinkedList<>(map.entrySet());
+		List<Map.Entry<ActorRef, List<Card>>> list = new LinkedList<Map.Entry<ActorRef, List<Card>>>(map.entrySet());
 		Collections.sort(list, new Comparator<Map.Entry<ActorRef, List<Card>>>(){
 			@Override
 			public int compare( Map.Entry<ActorRef, List<Card>> o1, Map.Entry<ActorRef, List<Card>> o2 ){

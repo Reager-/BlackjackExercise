@@ -90,7 +90,7 @@ public class PlayerActor extends UntypedActor {
             this.dealerActor.tell(Messages.BUSTED, getSelf());
         } else {
             log.info("Player {} tells STAND with {} points", getSelf().path().name(), playerHandPoints);
-            Queue<ActorRef> turns = DataGrid.getInstance().getTurnsQueue();
+            Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
             turns.remove().tell(Messages.PLAY_TURN, getSelf());
         }
     }
