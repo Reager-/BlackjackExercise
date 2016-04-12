@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import messages.Messages;
+import messages.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,47 +44,34 @@ public class DealerActor extends UntypedActor {
 	@Override
 	public void onReceive(Object message) throws Exception {
 		log.debug("Dealer {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
-		if (message instanceof String) {
-			if (!gameHasStarted) {
-				switch ((String) message) {
-				case Messages.START_GAME:
-					startBlackjack();
-					break;
-				case Messages.REGISTER_PLAYER:
-					register();
-					break;
-				default:
-					unhandled(message);
-				}
-			} else {
-				switch ((String) message) {
-				case Messages.BUSTED:
-					playerBusted();
-					break;
-				case Messages.PLAY_TURN:
-					endRound();
-					break;
-				case Messages.HIT:
-					hitHandler();
-					break;
-				case Messages.BET_DONE:
-					applyBet();
-					break;
-				case Messages.QUIT:
-					removePlayer();
-					break;
-				case Messages.STOP_GAME:
-					stopBlackJack();
-					break;
-				default:
-					unhandled(message);
-				}
+		
+		if (!gameHasStarted) {
+			if (message instanceof MessageStartGame){
+				startBlackjack();
+			} else if(message instanceof MessageRegisterPlayer){
+				register();
+			} else{
+				unhandled(message);
 			}
-		} else if (message instanceof Terminated) { // when a PlayerActor terminates
+		} else if(message instanceof MessageBusted){
+			playerBusted();
+		} else if(message instanceof MessagePlayTurn){
+			endRound();
+		} else if(message instanceof MessageHit){
+			hitHandler();
+		} else if(message instanceof MessageBetDone){
+			applyBet();
+		} else if(message instanceof MessageQuit){
 			removePlayer();
-		} else
+		} else if(message instanceof MessageStopGame){
+			stopBlackJack();
+		} else if (message instanceof Terminated){
+			removePlayer();
+		} else{
 			unhandled(message);
-	}
+		}
+
+	} 
 
 	private void playerBusted() {
 		log.info("Removing {}'s cards from the table", getSender().path().name());
@@ -93,7 +80,7 @@ public class DealerActor extends UntypedActor {
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		takeMoney(betsOnTable, getSender());
 		Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
-		turns.remove().tell(Messages.PLAY_TURN, getSelf());
+		turns.remove().tell(new MessagePlayTurn(), getSelf());
 	}
 
 	private void takeMoney(Map<ActorRef, Integer> betsOnTable, ActorRef ref) {
@@ -156,7 +143,7 @@ public class DealerActor extends UntypedActor {
 		betsOnTable.put(player, win);
 		this.bank -= win;
 		log.info("Dealer tells GRAB_WIN to Player {}", player.path().name());
-		player.tell(Messages.GRAB_WIN, getSelf());
+		player.tell(new MessageGrabWin(), getSelf());
 	}
 
 	private void hitHandler() {
@@ -166,7 +153,7 @@ public class DealerActor extends UntypedActor {
 		log.info("Dealer is deals card {} to {}", hitCard, getSender().path().name());
 		senderCards.add(hitCard);
 		cardsOnTable.put(getSender(), senderCards);
-		getSender().tell(Messages.PLAY_TURN, getSelf());
+		getSender().tell(new MessagePlayTurn(), getSelf());
 	}
 
 	private void removePlayer() {
@@ -195,7 +182,7 @@ public class DealerActor extends UntypedActor {
 				}
 			}
 			turns.add(getSelf());
-			turns.remove().tell(Messages.PLAY_TURN, getSelf());
+			turns.remove().tell(new MessagePlayTurn(), getSelf());
 		}
 	}
 
@@ -214,7 +201,7 @@ public class DealerActor extends UntypedActor {
 		this.getContext().watch(getSender());
 		this.players.add(getSender());
 		if (this.players.size() >= 1 && !gameHasStarted){
-			getSelf().tell(Messages.START_GAME, getSelf());
+			getSelf().tell(new MessageStartGame(), getSelf());
 		}
 	}
 
@@ -233,7 +220,7 @@ public class DealerActor extends UntypedActor {
 			DataGrid.getInstance().getBetsOnTable().clear();
 			DataGrid.getInstance().getTurns().clear();
 			for (ActorRef a : this.players){
-				a.tell(Messages.PLACE_BET, getSelf());
+				a.tell(new MessagePlaceBet(), getSelf());
 			}
 		} else {
 			stopBlackJack();

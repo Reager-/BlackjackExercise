@@ -7,6 +7,7 @@ public class DeckTest {
 		Deck deck = new Deck();
 		System.out.println(deck.toString());
 		System.out.println(deck.getDeckOfCards().size());
+		
 	}
 
 }

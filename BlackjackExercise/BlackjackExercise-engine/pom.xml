@@ -103,13 +103,6 @@
 						</Bundle-Description>
 						<Bundle-Activator>osgi.Activator</Bundle-Activator>
 						<Export-Package>osgi.services.*</Export-Package>
-						<Import-Package>
-							akka.actor;version=2.3.3,
-							com.hazelcast.*;version=3.3.3,
-							com.typesafe.config;version=1.2.1,
-							*
-						</Import-Package>
-						<Embed-Dependency>dependencies</Embed-Dependency>
 					</instructions>
 				</configuration>
 			</plugin>
