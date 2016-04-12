@@ -35,7 +35,6 @@
 						<Bundle-Description>Client for the BlackjackExercise-engine.
 						</Bundle-Description>
 						<Bundle-Activator>osgi.Activator</Bundle-Activator>
-						<Embed-Dependency>dependencies</Embed-Dependency>
 					</instructions>
 				</configuration>
 			</plugin>

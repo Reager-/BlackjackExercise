@@ -1,6 +1,8 @@
 package osgi;
 
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -12,12 +14,21 @@ import osgi.services.DealerServices;
 
 public class Activator implements BundleActivator, ServiceListener {
 
+	private List<ServiceTracker> serviceTrackers;
+	
 	public void start(BundleContext context) {
+		serviceTrackers = new LinkedList<ServiceTracker>();
 		Hashtable<String, String> properties = new Hashtable<>();
 		properties.put("GP", "BlackjackExercise-client");
-		ServiceTracker serviceTracker = new ServiceTracker(context, DealerServices.class, null);
-		serviceTracker.open();
-		DealerServices dealerServices = (DealerServices) serviceTracker.getService();
+		
+		ServiceTracker dealerServiceTracker = new ServiceTracker(context, DealerServices.class, null);
+		
+		serviceTrackers.add(dealerServiceTracker);
+		
+		dealerServiceTracker.open();
+		
+		DealerServices dealerServices = (DealerServices) dealerServiceTracker.getService();
+		
 		String actorSytemName = "BlackJackExercise";
 		String dealerId = "dealerActor";
 		System.out.println(dealerServices.instantiate(actorSytemName, dealerId));
@@ -25,7 +36,9 @@ public class Activator implements BundleActivator, ServiceListener {
 	}
 
 	public void stop(BundleContext context) {
-		context.removeServiceListener(this);
+		for (ServiceTracker st : serviceTrackers){
+			st.close();
+		}
 		System.out.println("Stopped listening for service events.");
 	}
 
