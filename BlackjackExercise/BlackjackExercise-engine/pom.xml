@@ -102,7 +102,11 @@
 							Felix.
 						</Bundle-Description>
 						<Bundle-Activator>osgi.Activator</Bundle-Activator>
-						<Export-Package>osgi.services.*</Export-Package>
+						<Export-Package>
+							osgi.services.*,
+							actors.*,
+							data.*	
+						</Export-Package>
 					</instructions>
 				</configuration>
 			</plugin>

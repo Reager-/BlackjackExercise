@@ -8,12 +8,16 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceListener;
 import org.osgi.util.tracker.ServiceTracker;
+
+import akka.actor.ActorSystem;
+import akka.osgi.ActorSystemActivator;
+
 import org.osgi.framework.ServiceEvent;
 
 import osgi.services.DealerServices;
 import osgi.services.DealerServicesImpl;
 
-public class Activator implements BundleActivator, ServiceListener {
+public class Activator extends ActorSystemActivator implements BundleActivator, ServiceListener{
 	
 	private List<ServiceTracker> serviceTrackers;
 
@@ -22,6 +26,7 @@ public class Activator implements BundleActivator, ServiceListener {
 		Hashtable<String, String> properties = new Hashtable<>();
 		properties.put("GP", "BlackjackExercise-engine");
 		context.registerService(DealerServices.class.getName(), new DealerServicesImpl(), properties);
+		//context.registerService(PlayerServices.class.getName(), new PlayerServicesImpl(), properties);
 		System.out.println("Starting to listen for service events.");
 	}
 
@@ -45,5 +50,10 @@ public class Activator implements BundleActivator, ServiceListener {
 		else if (event.getType() == ServiceEvent.MODIFIED) {
 			System.out.println("Ex1: Service of type " + objectClass[0] + " modified.");
 		}
+	}
+
+	@Override
+	public void configure(BundleContext context, ActorSystem system) {
+		registerService(context, system);	
 	}
 }

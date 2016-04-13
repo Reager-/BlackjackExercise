@@ -39,6 +39,7 @@ public class DealerActor extends UntypedActor {
 		this.players = new ArrayList<ActorRef>();
 		this.gameHasStarted = false;
 		this.bank = 100000;
+		System.out.println("Dealer created");
 	}
 
 	@Override

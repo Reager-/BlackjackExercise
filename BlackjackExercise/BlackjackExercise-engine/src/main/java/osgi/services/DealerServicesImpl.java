@@ -1,5 +1,7 @@
 package osgi.services;
 
+import java.util.Random;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.osgi.framework.BundleContext;
@@ -10,10 +12,16 @@ import com.typesafe.config.ConfigFactory;
 import data.DataGrid;
 import scala.Option;
 import actors.DealerActor;
+import actors.PlayerActor;
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
+import akka.actor.Address;
+import akka.actor.Deploy;
 import akka.actor.ExtendedActorSystem;
 import akka.actor.Props;
 import akka.osgi.OsgiActorSystemFactory;
+import akka.remote.RemoteScope;
 
 public class DealerServicesImpl implements DealerServices{
 
@@ -27,16 +35,17 @@ public class DealerServicesImpl implements DealerServices{
 			ClassLoader loader = OsgiActorSystemFactory.akkaActorClassLoader();
 			Option<ClassLoader> option = Option.apply(loader);
 			BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-			OsgiActorSystemFactory factory = new OsgiActorSystemFactory(context, option, ConfigFactory.load());
+			OsgiActorSystemFactory factory = new OsgiActorSystemFactory(context, option, ConfigFactory.load("application-dealer.conf"));
 			ActorSystem system = factory.createActorSystem(actorSystemName);
 			DataGrid.getInstance().addActorsSystem((ExtendedActorSystem) system);
-			system.actorOf(Props.create(DealerActor.class), dealerID);
+			Address addr = new Address("akka.tcp", system.name(), "127.0.0.1", 8469);
+			ActorRef actorRefDealer = system.actorOf(Props.create(DealerActor.class).withDeploy(new Deploy(new RemoteScope(addr))), dealerID);
 			context.registerService(ActorSystem.class.getName(), system, null);
 			result = true;
 			log.info("Dealer instantiation successful!");
-		} catch (Throwable t) {
+			System.out.println();
+			} catch (Throwable t) {
 			t.printStackTrace();
-			System.out.println(t.getMessage());
 			log.error("Dealer instantiation failed");
 		}
 

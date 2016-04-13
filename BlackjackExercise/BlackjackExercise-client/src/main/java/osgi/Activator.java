@@ -28,10 +28,12 @@ public class Activator implements BundleActivator, ServiceListener {
 		dealerServiceTracker.open();
 		
 		DealerServices dealerServices = (DealerServices) dealerServiceTracker.getService();
+		PlayerServices playerServices = new PlayerServicesImpl();
 		
-		String actorSytemName = "BlackJackExercise";
+		String dealerActorSystemName = "BlackjackExercise";
 		String dealerId = "dealerActor";
-		System.out.println(dealerServices.instantiate(actorSytemName, dealerId));
+		System.out.println(dealerServices.instantiate(dealerActorSystemName, dealerId));
+		System.out.println(playerServices.instantiate(dealerActorSystemName, dealerId));
 		System.out.println("Starting to listen for service events.");
 	}
 
