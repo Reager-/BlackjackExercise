@@ -27,12 +27,12 @@ public class PlayerActor extends UntypedActor {
 		this.bankroll = 1000; // default
 		this.dealerActor = dealerActor;
 		System.out.println("PlayerCreated");
-		this.dealerActor.tell(new MessageRegisterPlayer(), getSelf());
 	}
 
 	@Override
 	public void preStart() throws Exception {
 		log.info("PlayerActor.preStart()...");
+		this.dealerActor.tell(new MessageRegisterPlayer(), getSelf());
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class PlayerActor extends UntypedActor {
 
 	@Override
 	public void onReceive(Object message) throws Exception {
-		log.debug("Player {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
+		log.info("Player {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
 
 		if (message instanceof MessagePlaceBet){
 			placeBet();
@@ -80,7 +80,8 @@ public class PlayerActor extends UntypedActor {
 			log.info("Player {} tells BUSTED with {} points to Dealer", getSelf().path().name(), playerHandPoints);
 			this.dealerActor.tell(new MessageBusted(), getSelf());
 		} else{
-			String userInput = System.console().readLine("You have " + playerHandPoints + " points, take an action (H/S): ");
+			log.info("Player {} has " + playerHandPoints + " points, take an action (H/S): ", getSelf()); 
+			String userInput = System.console().readLine();
 			if (userInput.equals("H")||userInput.equals("h")||userInput.equals("hit")||userInput.equals("Hit")){
 				log.info("Player {} tells HIT with {} points to Dealer", getSelf().path().name(), playerHandPoints);
 				this.dealerActor.tell(new MessageHit(), getSelf());

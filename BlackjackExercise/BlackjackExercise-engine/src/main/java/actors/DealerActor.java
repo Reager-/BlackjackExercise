@@ -39,13 +39,11 @@ public class DealerActor extends UntypedActor {
 		this.players = new ArrayList<ActorRef>();
 		this.gameHasStarted = false;
 		this.bank = 100000;
-		log.info("DealerActor created");
 	}
 
 	@Override
 	public void onReceive(Object message) throws Exception {
 		log.debug("Dealer {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
-		System.out.println("Received a message");
 		if (!gameHasStarted) {
 			if (message instanceof MessageStartGame){
 				startBlackjack();
@@ -78,12 +76,17 @@ public class DealerActor extends UntypedActor {
 
 	private void playerBusted() {
 		log.info("Removing {}'s cards from the table", getSender().path().name());
-		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
-		cardsOnTable.remove(getSender());
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		takeMoney(betsOnTable, getSender());
+		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
+		cardsOnTable.remove(getSender());
+		if (this.players.size()>0){
 		Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
 		turns.remove().tell(new MessagePlayTurn(), getSelf());
+		} else{
+			log.info("Stopping game because no players active");
+			getSelf().tell(new MessageStopGame(), getSelf());
+		}
 	}
 
 	private void takeMoney(Map<ActorRef, Integer> betsOnTable, ActorRef ref) {
@@ -105,7 +108,7 @@ public class DealerActor extends UntypedActor {
 			cardsOnTable.put(getSelf(), cards);
 			dealerHandPoints += nextCard.getValue();
 		}
-		log.info("Dealer has the following cards: {}, with hand weight: {}", cards, dealerHandPoints);
+		log.info("Dealer has the following cards: {}, with points: {}", cards, dealerHandPoints);
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		if (dealerHandPoints > 21) {
 			log.info("Dealer BUSTED");
