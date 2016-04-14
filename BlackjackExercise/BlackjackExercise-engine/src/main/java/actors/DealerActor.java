@@ -25,7 +25,7 @@ import akka.event.LoggingAdapter;
 public class DealerActor extends UntypedActor {
 
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	
+
 	private static final int DEALER_HIT_THRESHOLD = 16;
 
 	private List<ActorRef> players;
@@ -80,11 +80,12 @@ public class DealerActor extends UntypedActor {
 		takeMoney(betsOnTable, getSender());
 		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
 		cardsOnTable.remove(getSender());
+		this.players.remove(getSender());
 		if (this.players.size()>0){
-		Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
-		turns.remove().tell(new MessagePlayTurn(), getSelf());
+			Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
+			turns.remove().tell(new MessagePlayTurn(), getSelf());
 		} else{
-			log.info("Stopping game because no players active");
+			log.info("Stopping game because no players are active");
 			getSelf().tell(new MessageStopGame(), getSelf());
 		}
 	}
@@ -157,7 +158,7 @@ public class DealerActor extends UntypedActor {
 		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
 		List<Card> senderCards = cardsOnTable.get(getSender());
 		Card hitCard = this.cardsDeck.nextCard();
-		log.info("Dealer is deals card {} to {}", hitCard, getSender().path().name());
+		log.info("Dealer deals card {} to {}", hitCard, getSender().path().name());
 		senderCards.add(hitCard);
 		cardsOnTable.put(getSender(), senderCards);
 		getSender().tell(new MessagePlayTurn(), getSelf());
@@ -243,7 +244,7 @@ public class DealerActor extends UntypedActor {
 	public void preStart() throws Exception {
 		log.info("DealerActor.preStart()...");
 	}
-	
+
 	@Override
 	public void postStop() throws Exception {
 		log.info("DealerActor.postStop()...");

@@ -89,6 +89,9 @@ public class PlayerActor extends UntypedActor {
 				log.info("Player {} tells STAND with {} points", getSelf().path().name(), playerHandPoints);
 				Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
 				turns.remove().tell(new MessagePlayTurn(), getSelf());
+			} else {
+				log.info("Player {} tells BUSTED to Dealer for not choosing a valid action", getSelf().path().name());
+				this.dealerActor.tell(new MessageBusted(), getSelf());
 			}
 		}
 		/*if (playerHandPoints < 17) {
