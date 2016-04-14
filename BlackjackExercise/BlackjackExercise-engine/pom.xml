@@ -79,6 +79,12 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>BlackjackExercise-client</groupId>
+			<artifactId>BlackjackExercise-client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -105,7 +111,10 @@
 						<Export-Package>
 							osgi.services.*,
 							actors.*,
-							data.*	
+							data.*,
+							messages.*,
+							game.*,
+							utils.*
 						</Export-Package>
 					</instructions>
 				</configuration>

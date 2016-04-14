@@ -14,18 +14,18 @@ import java.util.Queue;
 
 import messages.*;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import utils.CardUtils;
 import data.DataGrid;
 import akka.actor.ActorRef;
 import akka.actor.Terminated;
 import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 public class DealerActor extends UntypedActor {
 
-	private static final Logger log = LogManager.getLogger();
+	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+	
 	private static final int DEALER_HIT_THRESHOLD = 16;
 
 	private List<ActorRef> players;
@@ -39,19 +39,20 @@ public class DealerActor extends UntypedActor {
 		this.players = new ArrayList<ActorRef>();
 		this.gameHasStarted = false;
 		this.bank = 100000;
-		System.out.println("Dealer created");
+		log.info("DealerActor created");
 	}
 
 	@Override
 	public void onReceive(Object message) throws Exception {
 		log.debug("Dealer {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
-		
+		System.out.println("Received a message");
 		if (!gameHasStarted) {
 			if (message instanceof MessageStartGame){
 				startBlackjack();
 			} else if(message instanceof MessageRegisterPlayer){
 				register();
 			} else{
+				System.out.println("unhandled");
 				unhandled(message);
 			}
 		} else if(message instanceof MessageBusted){
@@ -69,6 +70,7 @@ public class DealerActor extends UntypedActor {
 		} else if (message instanceof Terminated){
 			removePlayer();
 		} else{
+			System.out.println("unhandled");
 			unhandled(message);
 		}
 
@@ -134,6 +136,7 @@ public class DealerActor extends UntypedActor {
 				takeMoney(betsOnTable, player);
 			} else {
 				log.info("Player {} ties!", player.path().name());
+				takeMoney(betsOnTable, player);
 				//TODO: implement tie case
 			}
 		}
@@ -235,7 +238,12 @@ public class DealerActor extends UntypedActor {
 
 	@Override
 	public void preStart() throws Exception {
-		log.info("Starting...");
+		log.info("DealerActor.preStart()...");
+	}
+	
+	@Override
+	public void postStop() throws Exception {
+		log.info("DealerActor.postStop()...");
 	}
 
 	private <K, V extends Comparable<? super V>> Map<ActorRef, List<Card>> sortMapByValue( Map<ActorRef, List<Card>> map ){

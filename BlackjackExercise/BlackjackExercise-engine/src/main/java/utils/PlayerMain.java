@@ -1,6 +1,5 @@
 package utils;
 
-import actors.PlayerActor;
 import akka.actor.*;
 
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +19,7 @@ public class PlayerMain {
         ActorSystem system = ExtendedActorSystem.create("BlackJackExercise");
         DataGrid.getInstance().addActorsSystem((ExtendedActorSystem)system);
         ActorSelection actorSelection = system.actorSelection("akka.tcp://BlackJackExercise@127.0.0.1:8469/user/dealerActor");
-        system.actorOf(Props.create(PlayerActor.class, actorSelection), "player"+ new Random().nextInt(1000));
+        //system.actorOf(Props.create(PlayerActor.class, actorSelection), "player"+ new Random().nextInt(1000));
 
         log.info("Exiting PlayerMain");
     }

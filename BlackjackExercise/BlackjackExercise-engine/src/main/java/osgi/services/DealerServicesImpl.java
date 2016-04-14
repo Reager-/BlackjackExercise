@@ -1,7 +1,5 @@
 package osgi.services;
 
-import java.util.Random;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.osgi.framework.BundleContext;
@@ -12,9 +10,7 @@ import com.typesafe.config.ConfigFactory;
 import data.DataGrid;
 import scala.Option;
 import actors.DealerActor;
-import actors.PlayerActor;
 import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Address;
 import akka.actor.Deploy;
@@ -35,10 +31,10 @@ public class DealerServicesImpl implements DealerServices{
 			ClassLoader loader = OsgiActorSystemFactory.akkaActorClassLoader();
 			Option<ClassLoader> option = Option.apply(loader);
 			BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-			OsgiActorSystemFactory factory = new OsgiActorSystemFactory(context, option, ConfigFactory.load("application-dealer.conf"));
+			OsgiActorSystemFactory factory = new OsgiActorSystemFactory(context, option, ConfigFactory.load());
 			ActorSystem system = factory.createActorSystem(actorSystemName);
 			DataGrid.getInstance().addActorsSystem((ExtendedActorSystem) system);
-			Address addr = new Address("akka.tcp", system.name(), "127.0.0.1", 8469);
+			Address addr = new Address("akka.tcp", system.name(), "127.0.0.1", 50000);
 			ActorRef actorRefDealer = system.actorOf(Props.create(DealerActor.class).withDeploy(new Deploy(new RemoteScope(addr))), dealerID);
 			context.registerService(ActorSystem.class.getName(), system, null);
 			result = true;
