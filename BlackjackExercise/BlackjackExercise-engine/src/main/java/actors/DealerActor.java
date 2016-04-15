@@ -50,7 +50,6 @@ public class DealerActor extends UntypedActor {
 			} else if(message instanceof MessageRegisterPlayer){
 				register();
 			} else{
-				System.out.println("unhandled");
 				unhandled(message);
 			}
 		} else if(message instanceof MessageBusted){
@@ -68,7 +67,6 @@ public class DealerActor extends UntypedActor {
 		} else if (message instanceof Terminated){
 			removePlayer();
 		} else{
-			System.out.println("unhandled");
 			unhandled(message);
 		}
 
@@ -80,47 +78,48 @@ public class DealerActor extends UntypedActor {
 		takeMoney(betsOnTable, getSender());
 		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
 		cardsOnTable.remove(getSender());
-		this.players.remove(getSender());
-		if (this.players.size()>0){
+		if (cardsOnTable.size()>1){
 			Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
 			turns.remove().tell(new MessagePlayTurn(), getSelf());
 		} else{
-			log.info("Stopping game because no players are active");
-			getSelf().tell(new MessageStopGame(), getSelf());
+			endRound();
 		}
 	}
 
 	private void takeMoney(Map<ActorRef, Integer> betsOnTable, ActorRef ref) {
 		Integer playerBet = betsOnTable.remove(ref);
 		this.bank += playerBet;
+		log.info("Dealer took {} $ from the table and now has a bank of {} $", playerBet, this.bank);
 	}
 
 	private void endRound() {
 		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
-		List<Card> cards = cardsOnTable.get(getSelf());
-		cards.add(holeCard);
-		log.info("The hole card is: {}", holeCard);
-		cardsOnTable.put(getSelf(), cards);
-		Integer dealerHandPoints = CardUtils.calculatePoints(cards);
-		while (dealerHandPoints <= DEALER_HIT_THRESHOLD) {
-			Card nextCard = this.cardsDeck.nextCard();
-			log.info("Dealer HIT: {}", nextCard);
-			cards.add(nextCard);
-			cardsOnTable.put(getSelf(), cards);
-			dealerHandPoints += nextCard.getValue();
-		}
-		log.info("Dealer has the following cards: {}, with points: {}", cards, dealerHandPoints);
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
-		if (dealerHandPoints > 21) {
-			log.info("Dealer BUSTED");
-			for (ActorRef a : cardsOnTable.keySet()){
-				if (!a.equals(getSelf())){
-					giveMoney(betsOnTable, a);
-				}
+		if (cardsOnTable.size()>1){
+			List<Card> cards = cardsOnTable.get(getSelf());
+			cards.add(holeCard);
+			log.info("The hole card is: {}", holeCard);
+			cardsOnTable.put(getSelf(), cards);
+			Integer dealerHandPoints = CardUtils.calculatePoints(cards);
+			while (dealerHandPoints <= DEALER_HIT_THRESHOLD) {
+				Card nextCard = this.cardsDeck.nextCard();
+				log.info("Dealer HIT: {}", nextCard);
+				cards.add(nextCard);
+				cardsOnTable.put(getSelf(), cards);
+				dealerHandPoints += nextCard.getValue();
 			}
-			log.info("Dealer has now a bank of: {}$", this.bank);
-		} else {
-			handleResults(cardsOnTable, betsOnTable, dealerHandPoints);
+			log.info("Dealer has the following cards: {}, with points: {}", cards, dealerHandPoints);
+			if (dealerHandPoints > 21) {
+				log.info("Dealer BUSTED");
+				for (ActorRef a : cardsOnTable.keySet()){
+					if (this.players.contains(a)){
+						giveMoney(betsOnTable, a);
+					}
+				}
+				log.info("Dealer has now a bank of: {}$", this.bank);
+			} else {
+				handleResults(cardsOnTable, betsOnTable, dealerHandPoints);
+			}
 		}
 		log.info("--- ROUND END ---");
 		startRound();
@@ -135,12 +134,15 @@ public class DealerActor extends UntypedActor {
 			if (comparison > 0) {
 				log.info("Player {} wins!", player.path().name());
 				giveMoney(betsOnTable, player);
+				return;
 			} else if (comparison < 0) {
 				log.info("Player {} loses!", player.path().name());
 				takeMoney(betsOnTable, player);
-			} else {
+				return;
+			} else if (comparison == 0){
 				log.info("Player {} ties!", player.path().name());
 				takeMoney(betsOnTable, player);
+				return;
 				//TODO: implement tie case
 			}
 		}

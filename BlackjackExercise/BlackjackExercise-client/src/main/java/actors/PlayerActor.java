@@ -42,7 +42,7 @@ public class PlayerActor extends UntypedActor {
 
 	@Override
 	public void onReceive(Object message) throws Exception {
-		log.info("Player {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
+		log.debug("Player {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
 
 		if (message instanceof MessagePlaceBet){
 			placeBet();
@@ -58,7 +58,7 @@ public class PlayerActor extends UntypedActor {
 	private void placeBet() {
 		Map<ActorRef, Integer> map = DataGrid.getInstance().getBetsOnTable();
 		if (this.bankroll > 0) {
-			int moneyToBet = this.bankroll > 100 ? 100 : 10; // fixed amount of bet, TODO: take input from keyboard?
+			int moneyToBet = 100; // fixed amount of bet, TODO: take input from keyboard?
 			log.info("Player {} is betting {} out of {}", getSelf().path().name(), moneyToBet, bankroll);
 			map.put(getSelf(), moneyToBet);
 			bankroll -= moneyToBet;

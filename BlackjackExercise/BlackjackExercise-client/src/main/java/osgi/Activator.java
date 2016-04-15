@@ -3,6 +3,7 @@ package osgi;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -30,7 +31,7 @@ public class Activator implements BundleActivator, ServiceListener {
 		DealerServices dealerServices = (DealerServices) dealerServiceTracker.getService();
 		PlayerServices playerServices = new PlayerServicesImpl();
 		
-		String dealerActorSystemName = "BlackjackExercise";
+		String dealerActorSystemName = "BlackjackExercise" + new Random().nextInt(1000);
 		String dealerId = "dealerActor";
 		System.out.println(dealerServices.instantiate(dealerActorSystemName, dealerId));
 		System.out.println(playerServices.instantiate(dealerActorSystemName, dealerId));
