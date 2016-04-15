@@ -87,9 +87,11 @@ import java.util.Queue;
 	        }
 	    }
 	}*/
-
+		
     private static final String BETS_ON_TABLE = "BetsOnTable";
-    private static final String CARDS_ON_TABLE = "CardsOnTable";
+    private static final String PLAYER_CARDS_ON_TABLE = "PlayerCardsOnTable";
+    private static final String DEALER_CARDS_ON_TABLE = "DealerCardsOnTable";
+    private static final String PLAYERS = "Players";
     private static final String TURNS = "Turns";
 
     private static class Initializer {
@@ -122,16 +124,29 @@ import java.util.Queue;
     	JavaSerializer.currentSystem().value_$eq(system);
         return hazelcastInstance.getQueue(s);
     }
+    
+    public <E> List<E> getList(String mapName) {
+    	JavaSerializer.currentSystem().value_$eq(system);
+        return hazelcastInstance.getList(mapName);
+    }
 
     public Map<ActorRef, Integer> getBetsOnTable(){
         return getMap(DataGrid.BETS_ON_TABLE);
     }
     
-    public Map<ActorRef, List<Card>> getCardsOnTable(){
-        return getMap(DataGrid.CARDS_ON_TABLE);
+    public Map<ActorRef, List<Card>> getPlayerCardsOnTable(){
+        return getMap(DataGrid.PLAYER_CARDS_ON_TABLE);
+    }
+    
+    public Map<ActorRef, List<Card>> getDealerCardsOnTable(){
+        return getMap(DataGrid.DEALER_CARDS_ON_TABLE);
     }
     
     public Queue<ActorRef> getTurns(){
         return getQueue(DataGrid.TURNS);
     }
-	}
+    
+    public List<ActorRef> getPlayers(){
+        return getList(DataGrid.PLAYERS);
+    }
+}

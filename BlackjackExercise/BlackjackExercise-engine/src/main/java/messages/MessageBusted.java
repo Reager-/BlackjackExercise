@@ -2,6 +2,7 @@ package messages;
 
 public class MessageBusted implements Message{
 
+	private static final long serialVersionUID = 5546809409050815449L;
 	private String message;
 
 	public MessageBusted() {

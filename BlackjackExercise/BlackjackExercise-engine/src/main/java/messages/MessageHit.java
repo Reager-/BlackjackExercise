@@ -2,6 +2,7 @@ package messages;
 
 public class MessageHit implements Message{
 
+	private static final long serialVersionUID = 7451313751477655883L;
 	private String message;
 
 	public MessageHit() {

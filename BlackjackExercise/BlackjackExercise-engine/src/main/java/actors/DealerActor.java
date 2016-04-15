@@ -21,6 +21,7 @@ import akka.actor.Terminated;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.japi.Procedure;
 
 public class DealerActor extends UntypedActor {
 
@@ -28,55 +29,81 @@ public class DealerActor extends UntypedActor {
 
 	private static final int DEALER_HIT_THRESHOLD = 16;
 
-	private List<ActorRef> players;
 	private Deck cardsDeck;
-	private boolean gameHasStarted;
 	private Card holeCard;
 	private int betCounter;
 	private int bank;
 
 	public DealerActor() {
-		this.players = new ArrayList<ActorRef>();
-		this.gameHasStarted = false;
 		this.bank = 100000;
 	}
+
+	Procedure<Object> gameNotStarted = new Procedure<Object>() {
+		@Override
+		public void apply(Object message) {
+			if (message instanceof MessageStartGame){
+				getContext().become(gameStarted);
+				startBlackjack();
+			}
+			else if(message instanceof MessageStopGame){
+				log.info("Game is already stopped!");
+			} else{
+				unhandled(message);
+			}
+		}
+	};
+
+	Procedure<Object> gameStarted = new Procedure<Object>() {
+		@Override
+		public void apply(Object message) {
+			if (message instanceof MessageStartGame){
+				log.info("Game already started!");
+			} else if(message instanceof MessageStopGame){
+				getContext().become(gameNotStarted);
+				stopBlackJack();
+			} else if(message instanceof MessageStartRound){
+				startRound();
+			} else if(message instanceof MessageBusted){
+				playerBusted();
+			} else if(message instanceof MessageLastPlayerPlayed){
+				endRound();
+			} else if(message instanceof MessageHit){
+				hitHandler();
+			} else if(message instanceof MessageBetDone){
+				applyBet();
+			} else if(message instanceof MessageQuit){
+				removePlayer();
+			} else if(message instanceof MessageStopGame){
+				stopBlackJack();
+			} else if (message instanceof Terminated){
+				removePlayer();
+			} else{
+				unhandled(message);
+			}
+		}
+	};
 
 	@Override
 	public void onReceive(Object message) throws Exception {
 		log.debug("Dealer {} received the message {}, from {}", getSelf().path().name(), message, getSender().path().name());
-		if (!gameHasStarted) {
-			if (message instanceof MessageStartGame){
-				startBlackjack();
-			} else if(message instanceof MessageRegisterPlayer){
-				register();
-			} else{
-				unhandled(message);
-			}
-		} else if(message instanceof MessageBusted){
-			playerBusted();
-		} else if(message instanceof MessagePlayTurn){
-			endRound();
-		} else if(message instanceof MessageHit){
-			hitHandler();
-		} else if(message instanceof MessageBetDone){
-			applyBet();
-		} else if(message instanceof MessageQuit){
-			removePlayer();
+		if (message instanceof MessageStartGame){
+			getContext().become(gameStarted);
+			startBlackjack();
 		} else if(message instanceof MessageStopGame){
+			getContext().become(gameNotStarted);
 			stopBlackJack();
-		} else if (message instanceof Terminated){
-			removePlayer();
+		} else if(message instanceof MessageRegisterPlayer){
+			register();
 		} else{
 			unhandled(message);
 		}
-
-	} 
+	}
 
 	private void playerBusted() {
 		log.info("Removing {}'s cards from the table", getSender().path().name());
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		takeMoney(betsOnTable, getSender());
-		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
+		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
 		cardsOnTable.remove(getSender());
 		if (cardsOnTable.size()>1){
 			Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
@@ -93,26 +120,27 @@ public class DealerActor extends UntypedActor {
 	}
 
 	private void endRound() {
-		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
+		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
+		Map<ActorRef, List<Card>> dealerCardsOnTable = DataGrid.getInstance().getDealerCardsOnTable();
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		if (cardsOnTable.size()>1){
-			List<Card> cards = cardsOnTable.get(getSelf());
+			List<Card> cards = dealerCardsOnTable.get(getSelf());
 			cards.add(holeCard);
 			log.info("The hole card is: {}", holeCard);
-			cardsOnTable.put(getSelf(), cards);
+			dealerCardsOnTable.put(getSelf(), cards);
 			Integer dealerHandPoints = CardUtils.calculatePoints(cards);
 			while (dealerHandPoints <= DEALER_HIT_THRESHOLD) {
 				Card nextCard = this.cardsDeck.nextCard();
 				log.info("Dealer HIT: {}", nextCard);
 				cards.add(nextCard);
-				cardsOnTable.put(getSelf(), cards);
+				dealerCardsOnTable.put(getSelf(), cards);
 				dealerHandPoints += nextCard.getValue();
 			}
 			log.info("Dealer has the following cards: {}, with points: {}", cards, dealerHandPoints);
 			if (dealerHandPoints > 21) {
 				log.info("Dealer BUSTED");
 				for (ActorRef a : cardsOnTable.keySet()){
-					if (this.players.contains(a)){
+					if (DataGrid.getInstance().getPlayers().contains(a)){
 						giveMoney(betsOnTable, a);
 					}
 				}
@@ -122,12 +150,11 @@ public class DealerActor extends UntypedActor {
 			}
 		}
 		log.info("--- ROUND END ---");
-		startRound();
+		getSelf().tell(new MessageStartRound(), getSelf());
 	}
 
 	private void handleResults(Map<ActorRef, List<Card>> cardsOnTable, Map<ActorRef, Integer> betsOnTable, Integer dealerHandPoints) {
 		ArrayList<ActorRef> playersToHandleResults = new ArrayList<>(cardsOnTable.keySet());
-		playersToHandleResults.remove(getSelf());
 		for (ActorRef player : playersToHandleResults) {
 			List<Card> playerCards = cardsOnTable.get(player);
 			int comparison = CardUtils.calculatePoints(playerCards).compareTo(dealerHandPoints);
@@ -149,15 +176,16 @@ public class DealerActor extends UntypedActor {
 	}
 
 	private void giveMoney(Map<ActorRef, Integer> betsOnTable, ActorRef player) {
-		Integer win = betsOnTable.get(player) * 2;
-		betsOnTable.put(player, win);
-		this.bank -= win;
+		Integer playerBetAmount = betsOnTable.get(player);
+		Integer playerWinAmount = playerBetAmount * 2;
+		betsOnTable.put(player, playerWinAmount);
+		this.bank -= playerBetAmount;
 		log.info("Dealer tells GRAB_WIN to Player {}", player.path().name());
 		player.tell(new MessageGrabWin(), getSelf());
 	}
 
 	private void hitHandler() {
-		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
+		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
 		List<Card> senderCards = cardsOnTable.get(getSender());
 		Card hitCard = this.cardsDeck.nextCard();
 		log.info("Dealer deals card {} to {}", hitCard, getSender().path().name());
@@ -169,35 +197,34 @@ public class DealerActor extends UntypedActor {
 	private void removePlayer() {
 		log.info("Player {} has quit", getSender().path().name());
 		this.getContext().unwatch(getSender());
-		this.players.remove(getSender());
+		DataGrid.getInstance().getPlayers().remove(getSender());
 		this.betCounter--;
-		DataGrid.getInstance().getCardsOnTable().remove(getSender());
+		DataGrid.getInstance().getPlayerCardsOnTable().remove(getSender());
 		DataGrid.getInstance().getBetsOnTable().remove(getSender());
 		applyBet();
 	}
 
 	private void applyBet() {
 		log.info("applying bet from {}", getSender().path().name());
-		if (++this.betCounter == players.size()) {
+		if (++this.betCounter == DataGrid.getInstance().getPlayers().size()) {
 			log.info("Starting to deal cards to players");
-			Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getCardsOnTable();
-			cardsOnTable.clear();
-			dealCardsToPlayers(cardsOnTable);
-			cardsOnTable.put(getSelf(), new ArrayList<Card>(Collections.singletonList(this.cardsDeck.nextCard())));
+			Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
+			Card holeCard = this.cardsDeck.nextCard();
 			dealCardsToPlayers(cardsOnTable);
 			Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
 			for (Map.Entry<ActorRef, List<Card>> a : sortMapByValue(cardsOnTable).entrySet()){	
-				if(!a.equals(getSelf())){
-					turns.add(a.getKey());
-				}
+				turns.add(a.getKey());
 			}
-			turns.add(getSelf());
+			List<Card> dealerCards = new ArrayList<Card>();
+			dealerCards.add(holeCard);
+			Map<ActorRef, List<Card>> dealerCardsOnTable = DataGrid.getInstance().getDealerCardsOnTable();
+			dealerCardsOnTable.put(getSelf(), dealerCards);
 			turns.remove().tell(new MessagePlayTurn(), getSelf());
 		}
 	}
 
 	private void dealCardsToPlayers(Map<ActorRef, List<Card>> cardsOnTable) {
-		for (ActorRef p : this.players){
+		for (ActorRef p : DataGrid.getInstance().getPlayers()){
 			List<Card> cards = cardsOnTable.get(p);
 			if (cards == null) {
 				cards = new ArrayList<Card>();
@@ -209,27 +236,36 @@ public class DealerActor extends UntypedActor {
 
 	private void register() {
 		this.getContext().watch(getSender());
-		this.players.add(getSender());
-		if (this.players.size() >= 1 && !gameHasStarted){
+		DataGrid.getInstance().getPlayers().add(getSender());
+		if (DataGrid.getInstance().getPlayers().size() >= 1){
 			getSelf().tell(new MessageStartGame(), getSelf());
 		}
 	}
 
 	private void stopBlackJack() {
-		this.gameHasStarted = false;
-		this.players = new ArrayList<ActorRef>();
+		clearHazelcastDataGrid();
+		getSelf().tell(new MessageStopGame(), getSelf());
+	}
+
+	private void clearHazelcastDataGrid() {
+		DataGrid.getInstance().getDealerCardsOnTable().clear();
+		DataGrid.getInstance().getPlayerCardsOnTable().clear();
+		DataGrid.getInstance().getBetsOnTable().clear();
+		DataGrid.getInstance().getTurns().clear();
+		DataGrid.getInstance().getPlayers().clear();
 	}
 
 	private void startRound() {
-		if (this.players.size() >= 1) {
+		if (DataGrid.getInstance().getPlayers().size() >= 1) {
 			log.info("--- ROUND START ---");
 			this.betCounter = 0;
 			this.cardsDeck = new Deck();
 			this.holeCard = this.cardsDeck.nextCard();
-			DataGrid.getInstance().getCardsOnTable().clear();
+			DataGrid.getInstance().getDealerCardsOnTable().clear();
+			DataGrid.getInstance().getPlayerCardsOnTable().clear();
 			DataGrid.getInstance().getBetsOnTable().clear();
 			DataGrid.getInstance().getTurns().clear();
-			for (ActorRef a : this.players){
+			for (ActorRef a : DataGrid.getInstance().getPlayers()){
 				a.tell(new MessagePlaceBet(), getSelf());
 			}
 		} else {
@@ -238,7 +274,6 @@ public class DealerActor extends UntypedActor {
 	}
 
 	private void startBlackjack() {
-		this.gameHasStarted = true;
 		startRound();
 	}
 

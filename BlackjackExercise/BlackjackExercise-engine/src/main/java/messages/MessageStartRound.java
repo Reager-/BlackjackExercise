@@ -1,13 +1,13 @@
 package messages;
 
-public class MessageQuit implements Message{
+public class MessageStartRound implements Message {
 	
-	private static final long serialVersionUID = 1012840551935795973L;
+	private static final long serialVersionUID = 6406890055066057014L;
 	private String message;
 
-	public MessageQuit() {
+	public MessageStartRound() {
 		super();
-		this.message = "Quit";
+		this.message = "StartRound";
 	}
 
 	public String getMessage() {
@@ -20,7 +20,7 @@ public class MessageQuit implements Message{
 
 	@Override
 	public String toString() {
-		return "MessageQuit [message=" + message + "]";
+		return "MessageStartRound [message=" + message + "]";
 	}
-
+	
 }

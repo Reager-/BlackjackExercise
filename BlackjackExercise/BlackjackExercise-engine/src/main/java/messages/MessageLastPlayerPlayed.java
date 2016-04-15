@@ -1,11 +1,12 @@
 package messages;
 
-public class MessagePlayTurn implements Message{
+public class MessageLastPlayerPlayed implements Message{
+
+	private static final long serialVersionUID = -3184683592297140195L;
 	
-	private static final long serialVersionUID = 8483570862054254741L;
 	private String message;
 
-	public MessagePlayTurn() {
+	public MessageLastPlayerPlayed() {
 		super();
 		this.message = "PlayTurn";
 	}
@@ -20,7 +21,7 @@ public class MessagePlayTurn implements Message{
 
 	@Override
 	public String toString() {
-		return "MessagePlayTurn [message=" + message + "]";
+		return "MessageLastPlayerPlayed [message=" + message + "]";
 	}
-
+	
 }

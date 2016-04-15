@@ -1,7 +1,8 @@
 package messages;
 
 public class MessageStartGame implements Message{
-	
+
+	private static final long serialVersionUID = -4557764977432243169L;
 	private String message;
 
 	public MessageStartGame() {

@@ -1,7 +1,8 @@
 package messages;
 
 public class MessageGrabWin implements Message{
-	
+
+	private static final long serialVersionUID = -6971428379869577087L;
 	private String message;
 
 	public MessageGrabWin() {

@@ -56,11 +56,11 @@ public class PlayerActor extends UntypedActor {
 	}
 
 	private void placeBet() {
-		Map<ActorRef, Integer> map = DataGrid.getInstance().getBetsOnTable();
+		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		if (this.bankroll > 0) {
 			int moneyToBet = 100; // fixed amount of bet, TODO: take input from keyboard?
 			log.info("Player {} is betting {} out of {}", getSelf().path().name(), moneyToBet, bankroll);
-			map.put(getSelf(), moneyToBet);
+			betsOnTable.put(getSelf(), moneyToBet);
 			bankroll -= moneyToBet;
 			this.dealerActor.tell(new MessageBetDone(), getSelf());
 		} else {
@@ -70,7 +70,7 @@ public class PlayerActor extends UntypedActor {
 	}
 
 	private void playTurn() {
-		List<Card> playerCards = DataGrid.getInstance().getCardsOnTable().get(getSelf());
+		List<Card> playerCards = DataGrid.getInstance().getPlayerCardsOnTable().get(getSelf());
 		log.info("Player {} has the following cards: {}", getSelf().path().name(), playerCards);
 		Integer playerHandPoints = CardUtils.calculatePoints(playerCards);
 		/*
@@ -88,7 +88,11 @@ public class PlayerActor extends UntypedActor {
 			} else if (userInput.equals("S")||userInput.equals("s")||userInput.equals("stand")||userInput.equals("Stand")){
 				log.info("Player {} tells STAND with {} points", getSelf().path().name(), playerHandPoints);
 				Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
-				turns.remove().tell(new MessagePlayTurn(), getSelf());
+				if (turns.size()>0) {
+					turns.remove().tell(new MessagePlayTurn(), getSelf());
+				} else {
+					this.dealerActor.tell(new MessageLastPlayerPlayed(), getSelf());
+				}
 			} else {
 				log.info("Player {} tells BUSTED to Dealer for not choosing a valid action", getSelf().path().name());
 				this.dealerActor.tell(new MessageBusted(), getSelf());
