@@ -26,13 +26,12 @@ public class PlayerActor extends UntypedActor {
 	public PlayerActor(ActorSelection dealerActor) {
 		this.bankroll = 1000; // default
 		this.dealerActor = dealerActor;
-		System.out.println("PlayerCreated");
+		this.dealerActor.tell(new MessageRegisterPlayer(), getSelf());
 	}
 
 	@Override
 	public void preStart() throws Exception {
 		log.info("PlayerActor.preStart()...");
-		this.dealerActor.tell(new MessageRegisterPlayer(), getSelf());
 	}
 
 	@Override
@@ -70,7 +69,8 @@ public class PlayerActor extends UntypedActor {
 	}
 
 	private void playTurn() {
-		List<Card> playerCards = DataGrid.getInstance().getPlayerCardsOnTable().get(getSelf());
+		Map<ActorRef, List<Card>> playerCardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
+		List<Card> playerCards = playerCardsOnTable.get(getSelf());
 		log.info("Player {} has the following cards: {}", getSelf().path().name(), playerCards);
 		Integer playerHandPoints = CardUtils.calculatePoints(playerCards);
 		/*

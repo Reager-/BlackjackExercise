@@ -123,7 +123,7 @@ public class DealerActor extends UntypedActor {
 		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
 		Map<ActorRef, List<Card>> dealerCardsOnTable = DataGrid.getInstance().getDealerCardsOnTable();
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
-		if (cardsOnTable.size()>1){
+		if (cardsOnTable.size()>0){
 			List<Card> cards = dealerCardsOnTable.get(getSelf());
 			cards.add(holeCard);
 			log.info("The hole card is: {}", holeCard);

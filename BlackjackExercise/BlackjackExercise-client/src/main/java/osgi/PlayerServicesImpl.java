@@ -33,7 +33,7 @@ public class PlayerServicesImpl implements PlayerServices{
 			OsgiActorSystemFactory factory = new OsgiActorSystemFactory(context, option, ConfigFactory.load());
 			ActorSystem system = factory.createActorSystem(actorSystemName);
 			DataGrid.getInstance().addActorsSystem((ExtendedActorSystem) system);
-			ActorSelection actorSelection = system.actorSelection("akka.tcp://"+ actorSystemName +"@127.0.0.1:50000/user/" + dealerID);
+			ActorSelection actorSelection = system.actorSelection("akka.tcp://"+ actorSystemName +"@127.0.0.1:51234/user/" + dealerID);
 	        system.actorOf(Props.create(PlayerActor.class, actorSelection), "player"+ new Random().nextInt(1000));
 			context.registerService(ActorSystem.class.getName(), system, null);
 			result = true;

@@ -34,8 +34,8 @@ public class DealerServicesImpl implements DealerServices{
 			OsgiActorSystemFactory factory = new OsgiActorSystemFactory(context, option, ConfigFactory.load());
 			ActorSystem system = factory.createActorSystem(actorSystemName);
 			DataGrid.getInstance().addActorsSystem((ExtendedActorSystem) system);
-			Address addr = new Address("akka.tcp", system.name(), "127.0.0.1", 50000);
-			ActorRef actorRefDealer = system.actorOf(Props.create(DealerActor.class).withDeploy(new Deploy(new RemoteScope(addr))), dealerID);
+			Address addr = new Address("akka.tcp", system.name(), "127.0.0.1", 51234);
+			system.actorOf(Props.create(DealerActor.class).withDeploy(new Deploy(new RemoteScope(addr))), dealerID);
 			context.registerService(ActorSystem.class.getName(), system, null);
 			result = true;
 			log.info("Dealer instantiation successful!");

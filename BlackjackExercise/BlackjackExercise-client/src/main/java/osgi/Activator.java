@@ -34,6 +34,12 @@ public class Activator implements BundleActivator, ServiceListener {
 		String dealerActorSystemName = "BlackjackExercise" + new Random().nextInt(1000);
 		String dealerId = "dealerActor";
 		System.out.println(dealerServices.instantiate(dealerActorSystemName, dealerId));
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println(playerServices.instantiate(dealerActorSystemName, dealerId));
 		System.out.println("Starting to listen for service events.");
 	}

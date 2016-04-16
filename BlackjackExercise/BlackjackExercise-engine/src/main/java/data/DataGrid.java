@@ -125,9 +125,9 @@ import java.util.Queue;
         return hazelcastInstance.getQueue(s);
     }
     
-    public <E> List<E> getList(String mapName) {
+    public <E> List<E> getList(String listName) {
     	JavaSerializer.currentSystem().value_$eq(system);
-        return hazelcastInstance.getList(mapName);
+        return hazelcastInstance.getList(listName);
     }
 
     public Map<ActorRef, Integer> getBetsOnTable(){
