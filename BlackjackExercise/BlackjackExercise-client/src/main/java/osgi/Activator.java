@@ -44,7 +44,7 @@ public class Activator implements BundleActivator, ServiceListener {
 		}
 		String userInput = System.console().readLine("Type # of players to play Blackjack: ");
 		int numberOfPlayers = Integer.parseInt(userInput);
-		for (int i = 0; i <= numberOfPlayers; i++){
+		for (int i = 0; i < numberOfPlayers; i++){
 			System.out.println(playerServices.instantiate(dealerActorSystemName, dealerId));
 		}
 	}

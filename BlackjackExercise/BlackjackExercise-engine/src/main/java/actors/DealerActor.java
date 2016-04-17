@@ -102,8 +102,8 @@ public class DealerActor extends UntypedActor {
 		takeMoney(betsOnTable, getSender());
 		Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
 		cardsOnTable.remove(getSender());
-		if (cardsOnTable.size()>1){
-			Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
+		Queue<ActorRef> turns = DataGrid.getInstance().getTurns();
+		if (turns.size()>0){
 			turns.remove().tell(new MessagePlayTurn(), getSelf());
 		} else{
 			endRound();
