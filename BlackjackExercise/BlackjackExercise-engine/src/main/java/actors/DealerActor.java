@@ -57,7 +57,7 @@ public class DealerActor extends UntypedActor {
 		@Override
 		public void apply(Object message) {
 			if (message instanceof MessageStartGame){
-				log.info("Game already started!");
+				log.info("Game already started, waiting for players!");
 			} else if(message instanceof MessageStopGame){
 				getContext().become(gameNotStarted);
 				stopBlackJack();
@@ -73,8 +73,6 @@ public class DealerActor extends UntypedActor {
 				applyBet();
 			} else if(message instanceof MessageQuit){
 				removePlayer();
-			} else if(message instanceof MessageStopGame){
-				stopBlackJack();
 			} else if (message instanceof Terminated){
 				removePlayer();
 			} else{
@@ -197,16 +195,19 @@ public class DealerActor extends UntypedActor {
 	private void removePlayer() {
 		log.info("Player {} has quit", getSender().path().name());
 		this.getContext().unwatch(getSender());
-		DataGrid.getInstance().getPlayers().remove(getSender());
-		this.betCounter--;
 		DataGrid.getInstance().getPlayerCardsOnTable().remove(getSender());
 		DataGrid.getInstance().getBetsOnTable().remove(getSender());
-		applyBet();
+		DataGrid.getInstance().getPlayers().remove(getSender());
+		if (this.betCounter == DataGrid.getInstance().getPlayers().size()) {
+			this.betCounter--;
+			applyBet();
+		}
 	}
 
 	private void applyBet() {
-		log.info("applying bet from {}", getSender().path().name());
-		if (++this.betCounter == DataGrid.getInstance().getPlayers().size()) {
+		this.betCounter++;
+		if (this.betCounter > 0 && this.betCounter == DataGrid.getInstance().getPlayers().size()) {
+			log.info("applying bet from {}", getSender().path().name());
 			log.info("Starting to deal cards to players");
 			Map<ActorRef, List<Card>> cardsOnTable = DataGrid.getInstance().getPlayerCardsOnTable();
 			Card holeCard = this.cardsDeck.nextCard();
@@ -220,6 +221,8 @@ public class DealerActor extends UntypedActor {
 			Map<ActorRef, List<Card>> dealerCardsOnTable = DataGrid.getInstance().getDealerCardsOnTable();
 			dealerCardsOnTable.put(getSelf(), dealerCards);
 			turns.remove().tell(new MessagePlayTurn(), getSelf());
+		} else {
+			getSelf().tell(new MessageStopGame(), getSelf());
 		}
 	}
 
@@ -243,8 +246,8 @@ public class DealerActor extends UntypedActor {
 	}
 
 	private void stopBlackJack() {
+		log.info("Stopping Blackjack game!");
 		clearHazelcastDataGrid();
-		getSelf().tell(new MessageStopGame(), getSelf());
 	}
 
 	private void clearHazelcastDataGrid() {
@@ -269,11 +272,12 @@ public class DealerActor extends UntypedActor {
 				a.tell(new MessagePlaceBet(), getSelf());
 			}
 		} else {
-			stopBlackJack();
+			getSelf().tell(new MessageStopGame(), getSelf());
 		}
 	}
 
 	private void startBlackjack() {
+		log.info("Starting Blackjack game!");
 		startRound();
 	}
 

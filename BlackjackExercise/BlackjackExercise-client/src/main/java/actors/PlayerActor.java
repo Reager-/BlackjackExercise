@@ -57,7 +57,9 @@ public class PlayerActor extends UntypedActor {
 	private void placeBet() {
 		Map<ActorRef, Integer> betsOnTable = DataGrid.getInstance().getBetsOnTable();
 		if (this.bankroll > 0) {
-			int moneyToBet = 100; // fixed amount of bet, TODO: take input from keyboard?
+			//int moneyToBet = 100; // fixed amount of bet
+			String userInput = System.console().readLine(getSelf().path().name() + " has " + bankroll + "$, place amount to bet: ");
+			int moneyToBet = Integer.parseInt(userInput);
 			log.info("Player {} is betting {} out of {}", getSelf().path().name(), moneyToBet, bankroll);
 			betsOnTable.put(getSelf(), moneyToBet);
 			bankroll -= moneyToBet;
@@ -73,9 +75,6 @@ public class PlayerActor extends UntypedActor {
 		List<Card> playerCards = playerCardsOnTable.get(getSelf());
 		log.info("Player {} has the following cards: {}", getSelf().path().name(), playerCards);
 		Integer playerHandPoints = CardUtils.calculatePoints(playerCards);
-		/*
-		 * TODO: take input from keyboard instead of fixed hitting and standing based on points.
-		 */
 		if(playerHandPoints > 21){
 			log.info("Player {} tells BUSTED with {} points to Dealer", getSelf().path().name(), playerHandPoints);
 			this.dealerActor.tell(new MessageBusted(), getSelf());
@@ -98,7 +97,9 @@ public class PlayerActor extends UntypedActor {
 				this.dealerActor.tell(new MessageBusted(), getSelf());
 			}
 		}
-		/*if (playerHandPoints < 17) {
+		
+		/* Random actions
+		 * if (playerHandPoints < 17) {
 			log.info("Player {} tells HIT with {} points to Dealer", getSelf().path().name(), playerHandPoints);
 			this.dealerActor.tell(new MessageHit(), getSelf());
 		} else if (playerHandPoints > 21) {
