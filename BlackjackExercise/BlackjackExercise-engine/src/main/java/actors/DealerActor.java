@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Queue;
 
 import messages.*;
-
 import utils.CardUtils;
 import data.DataGrid;
 import akka.actor.ActorRef;
@@ -159,15 +158,12 @@ public class DealerActor extends UntypedActor {
 			if (comparison > 0) {
 				log.info("Player {} wins!", player.path().name());
 				giveMoney(betsOnTable, player);
-				return;
 			} else if (comparison < 0) {
 				log.info("Player {} loses!", player.path().name());
 				takeMoney(betsOnTable, player);
-				return;
 			} else if (comparison == 0){
 				log.info("Player {} ties!", player.path().name());
 				takeMoney(betsOnTable, player);
-				return;
 				//TODO: implement tie case
 			}
 		}
@@ -221,7 +217,7 @@ public class DealerActor extends UntypedActor {
 			Map<ActorRef, List<Card>> dealerCardsOnTable = DataGrid.getInstance().getDealerCardsOnTable();
 			dealerCardsOnTable.put(getSelf(), dealerCards);
 			turns.remove().tell(new MessagePlayTurn(), getSelf());
-		} else {
+		} else if (this.betCounter == 0){
 			getSelf().tell(new MessageStopGame(), getSelf());
 		}
 	}
@@ -240,9 +236,7 @@ public class DealerActor extends UntypedActor {
 	private void register() {
 		this.getContext().watch(getSender());
 		DataGrid.getInstance().getPlayers().add(getSender());
-		if (DataGrid.getInstance().getPlayers().size() >= 1){
-			getSelf().tell(new MessageStartGame(), getSelf());
-		}
+		getSelf().tell(new MessageStartGame(), getSelf());
 	}
 
 	private void stopBlackJack() {
@@ -278,6 +272,12 @@ public class DealerActor extends UntypedActor {
 
 	private void startBlackjack() {
 		log.info("Starting Blackjack game!");
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		startRound();
 	}
 

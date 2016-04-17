@@ -31,6 +31,8 @@ public class Activator implements BundleActivator, ServiceListener {
 		DealerServices dealerServices = (DealerServices) dealerServiceTracker.getService();
 		PlayerServices playerServices = new PlayerServicesImpl();
 		
+		System.out.println("Starting to listen for service events.");
+		
 		String dealerActorSystemName = "BlackjackExercise" + new Random().nextInt(1000);
 		String dealerId = "dealerActor";
 		System.out.println(dealerServices.instantiate(dealerActorSystemName, dealerId));
@@ -40,8 +42,11 @@ public class Activator implements BundleActivator, ServiceListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(playerServices.instantiate(dealerActorSystemName, dealerId));
-		System.out.println("Starting to listen for service events.");
+		String userInput = System.console().readLine("Type # of players to play Blackjack: ");
+		int numberOfPlayers = Integer.parseInt(userInput);
+		for (int i = 0; i <= numberOfPlayers; i++){
+			System.out.println(playerServices.instantiate(dealerActorSystemName, dealerId));
+		}
 	}
 
 	public void stop(BundleContext context) {
